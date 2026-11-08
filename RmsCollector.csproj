@@ -1,0 +1,40 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <AssemblyName>rms_collector</AssemblyName>
+    <RootNamespace>RmsCollector</RootNamespace>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <PlatformTarget>x64</PlatformTarget>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <PublishAot>false</PublishAot>
+    <PublishTrimmed>false</PublishTrimmed>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="src-csharp/**/*.cs" />
+    <Reference Include="YMConnect_CS">
+      <HintPath>sdk/dotnet/YMConnect_CS.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <None Include="sdk/dotnet/YMConnect.dll" Link="YMConnect.dll" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <None Update="config/**" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <None Update="collector.token.example" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <None Include="sdk/dotnet/LICENSE" Link="licenses/YMConnect-LICENSE" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <None Update="THIRD-PARTY-NOTICES.md" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <None Update="deploy/windows/*" Link="%(Filename)%(Extension)" CopyToPublishDirectory="PreserveNewest" />
+    <None Update="PANDUAN_WINDOWS.md" CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
+  <Target Name="CheckVendorSdk" BeforeTargets="ResolveAssemblyReferences">
+    <Error Condition="!Exists('sdk/dotnet/YMConnect_CS.dll') Or !Exists('sdk/dotnet/YMConnect.dll')" Text="Extract the matching official YMConnectDotNet Windows SDK into sdk/dotnet. Both YMConnect_CS.dll and YMConnect.dll are required. See readme.md." />
+  </Target>
+  <Target Name="PreserveRuntimeLicenses" AfterTargets="Publish" Condition="'$(SelfContained)' == 'true'">
+    <ItemGroup>
+      <RuntimeLicense Include="@(ResolvedRuntimePack->'%(PackageDirectory)/LICENSE.TXT')" />
+      <RuntimeLicense Include="@(ResolvedRuntimePack->'%(PackageDirectory)/THIRD-PARTY-NOTICES.TXT')" />
+      <RuntimeLicense Remove="@(RuntimeLicense)" Condition="!Exists('%(Identity)')" />
+    </ItemGroup>
+    <Copy SourceFiles="@(RuntimeLicense)" DestinationFolder="$(PublishDir)licenses/dotnet" SkipUnchangedFiles="true" />
+  </Target>
+</Project>

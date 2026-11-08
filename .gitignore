@@ -1,0 +1,10 @@
+**/bin/
+**/obj/
+publish/
+artifacts/
+.vs/
+.vscode/
+build*/
+collector.token
+spool/
+*.user

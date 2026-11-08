@@ -1,0 +1,32 @@
+RMS COLLECTOR C# - WINDOWS x64
+
+Paket ini membawa .NET Runtime. Untuk menjalankan paket ini di DOJO,
+tidak perlu .NET SDK atau MSVC Build Tools.
+
+1. Ekstrak seluruh folder ke C:\RMS-Collector. Jangan hanya menyalin EXE.
+2. Klik TEST_MOCK.cmd. Ini hanya simulasi; tidak mengirim data ke Laravel.
+3. Klik CHECK_SDK.cmd untuk memeriksa DLL YMConnect.
+   Jika DLL tidak dapat dimuat, pasang Visual C++ v14 Redistributable x64:
+   https://aka.ms/vc14/vc_redist.x64.exe
+4. Buka config\collector.dojo.conf. Sesuaikan API Laravel, ID robot di
+   database, IP controller dan alamat IO sesuai kebutuhan.
+5. Buka PowerShell di folder ini, lalu uji pembacaan tanpa POST:
+
+   .\rms_collector.exe --config .\config\collector.dojo.conf --real --once --dry-run
+
+6. Setelah hasil pembacaan benar, salin collector.token.example menjadi
+   collector.token. Isi token asli dari lingkungan Laravel, tanpa "Bearer ".
+   Uji satu siklus POST:
+
+   .\rms_collector.exe --config .\config\collector.dojo.conf --real --once
+
+7. Periksa respons API 2xx dan data di backend. Jalankan kontinu dengan:
+
+   .\rms_collector.exe --config .\config\collector.dojo.conf --real
+
+Ctrl+C untuk berhenti. Hentikan collector C++ lama sebelum memakai versi ini
+untuk robot dan folder spool yang sama. File antrean disimpan di spool\<id>.
+
+Pembacaan DLL Windows dan robot fisik perlu diuji di PC kamu. Paket sudah
+dibuild untuk Windows x64; pengujian pengembangan memakai mock dan HTTP lokal.
+Panduan rinci untuk .NET SDK dan source ada di PANDUAN_WINDOWS.md.
