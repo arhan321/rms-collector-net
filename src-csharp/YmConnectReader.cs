@@ -88,7 +88,32 @@ internal sealed class YmConnectReader(Device device) : IRobotReader
             s.State = s.State with { Raw = ApiPayloads.Json(s.StateData) };
         }
         if (extras) ReadExtras(c, s);
+        else if (JobMonitorOptions.EverySample) ReadJobMonitorForTelemetry(c, s);
         return s;
+    }
+
+    // Opt-in extra read only. Existing ReadExtras(), its cadence, and the normal
+    // telemetry/alarm/offline-queue behavior remain unchanged by default.
+    private static void ReadJobMonitorForTelemetry(MotomanController c, RobotSample s)
+    {
+        try
+        {
+            var status = c.Job.GetExecutingJobInformation(InformTaskNumber.Master, out JobData job);
+            s.Job = Result(status, "YMConnect job read failed", status.StatusCode == 0 ? ApiPayloads.Text(job.Name) : "");
+            if (s.Job.Ok)
+            {
+                s.JobData = ApiPayloads.Map(("name", ApiPayloads.Text(job.Name)),
+                    ("line", job.Line), ("step", job.StepNumber),
+                    ("speed_override_percent", job.SpeedOverride), ("task", "Master"));
+            }
+        }
+        catch (Exception exception)
+        {
+            // The optional read must not cancel all robot tasks if it throws a
+            // managed exception. Native fatal errors cannot be caught reliably.
+            s.Job = new(false, -1, $"Optional YMConnect job read failed ({exception.GetType().Name})");
+            s.JobData = null;
+        }
     }
 
     private static void ReadOperating(MotomanController c, RobotSample s)

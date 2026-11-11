@@ -45,12 +45,19 @@ internal static class ApiPayloads
         string[] axes = ["S", "L", "U", "R", "B", "T"];
         return Enumerable.Range(0, 6).ToDictionary(i => axes[i], i => values[i]);
     }
-    public static object Metadata(RobotSample s, bool mock, Device d) => Map(
-        ("simulated", mock), ("torque_unit", "sdk_raw"), ("position_unit", "pulses"), ("group", d.Group),
-        ("controller_state", s.StateData), ("job", s.JobData), ("system_info", s.SystemInfoData),
-        ("io_values", s.IoData), ("alarm_history", s.AlarmHistoryData),
-        ("state_read", Availability(s.State)), ("job_read", Availability(s.Job)),
-        ("io_read", Availability(s.Io)), ("alarm_history_read", Availability(s.AlarmHistory)));
+    public static object Metadata(RobotSample s, bool mock, Device d)
+    {
+        // All original metadata keys and values remain unchanged.
+        var data = Map(
+            ("simulated", mock), ("torque_unit", "sdk_raw"), ("position_unit", "pulses"), ("group", d.Group),
+            ("controller_state", s.StateData), ("job", s.JobData), ("system_info", s.SystemInfoData),
+            ("io_values", s.IoData), ("alarm_history", s.AlarmHistoryData),
+            ("state_read", Availability(s.State)), ("job_read", Availability(s.Job)),
+            ("io_read", Availability(s.Io)), ("alarm_history_read", Availability(s.AlarmHistory)));
+        if (JobMonitorOptions.EverySample)
+            data["job_monitor"] = JobMonitorEvidence.FromSample(s, mock);
+        return data;
+    }
     public static string Telemetry(Device d, string session, long seq, string at, RobotSample s, bool mock) => Json(Map(
         ("robot_id", d.Id), ("collector_session_id", session), ("sequence", seq), ("sampled_at", at),
         ("position_ok", s.Position.Ok), ("position_status_code", s.Position.Code), ("position_status_message", s.Position.Error),
